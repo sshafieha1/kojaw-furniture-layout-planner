@@ -264,22 +264,32 @@ canvas.addEventListener('mousedown', e => {
 
   // ---- SELECT TOOL ----
 
-  // 1. Furniture (rotation-aware hit) — check all rooms
+  // 1. Check handles of selected furniture first
+  if (state.selected && state.selected.type === 'furniture') {
+    const room = state.rooms.find(r => r.id === state.selected.roomId);
+    if (room) {
+      const f = room.furniture.find(x => x.id === state.selected.itemId);
+      if (f) {
+        if (isRotHandle(f, room, cx, cy)) {
+          if (typeof commitState === 'function') commitState();
+          const fcx = room.canvasX + realToPx(f.rx + f.realW/2);
+          const fcy = room.canvasY + realToPx(f.ry + f.realH/2);
+          mouseDown = { type: 'rotate', f, room, startAngle: Math.atan2(cy-fcy, cx-fcx), startRot: f.rotation || 0 };
+          return;
+        }
+        if (isResizeHandle(f, room, cx, cy)) {
+          if (typeof commitState === 'function') commitState();
+          mouseDown = { type: 'resize', f, room, startW: f.realW, startH: f.realH, startCx: cx, startCy: cy };
+          return;
+        }
+      }
+    }
+  }
+
+  // 2. Furniture (rotation-aware hit) — check all rooms
   for (const room of [...state.rooms].reverse()) {
     const f = hitFurniture(room, cx, cy);
     if (f) {
-      if (state.selected && state.selected.itemId===f.id && isRotHandle(f,room,cx,cy)) {
-        if (typeof commitState === 'function') commitState();
-        const fcx=room.canvasX+realToPx(f.rx+f.realW/2);
-        const fcy=room.canvasY+realToPx(f.ry+f.realH/2);
-        mouseDown={type:'rotate',f,room,startAngle:Math.atan2(cy-fcy,cx-fcx),startRot:f.rotation||0};
-        return;
-      }
-      if (state.selected && state.selected.itemId===f.id && isResizeHandle(f,room,cx,cy)) {
-        if (typeof commitState === 'function') commitState();
-        mouseDown={type:'resize',f,room,startW:f.realW,startH:f.realH,startCx:cx,startCy:cy};
-        return;
-      }
       if (typeof commitState === 'function') commitState();
       state.selected={type:'furniture',roomId:room.id,itemId:f.id};
       const local=toRoomLocal(room,cx,cy);
