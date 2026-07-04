@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kojaw? – Furniture Layout Planner</title>
+  <meta name="description" content="Plan furniture layouts in any room. Draw your room, add furniture items, and drag them into the perfect arrangement." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== HEADER ===== -->
+<header class="app-header">
+  <div class="header-brand">
+    <svg class="brand-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="2" y="2" width="28" height="28" rx="4" stroke="currentColor" stroke-width="2"/>
+      <rect x="7" y="12" width="8" height="12" rx="1" fill="currentColor" opacity="0.7"/>
+      <rect x="17" y="8" width="8" height="6" rx="1" fill="currentColor" opacity="0.9"/>
+      <rect x="17" y="16" width="8" height="8" rx="1" fill="currentColor" opacity="0.5"/>
+    </svg>
+    <span class="brand-name">Kojaw?</span>
+    <span class="brand-tagline">Furniture Layout Planner</span>
+  </div>
+  <div class="header-controls">
+    <div class="unit-toggle" id="unitToggle">
+      <button class="unit-btn active" data-unit="imperial" id="imperialBtn">Imperial (in)</button>
+      <button class="unit-btn" data-unit="metric" id="metricBtn">Metric (m/cm)</button>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="btnOpen" title="Open a saved .floorplan file">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M3 7a2 2 0 012-2h3l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Open
+      </button>
+      <button class="btn btn-ghost" id="btnPrint" title="Print layout">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M5 7V3h10v4M5 15H3a1 1 0 01-1-1V9a1 1 0 011-1h14a1 1 0 011 1v5a1 1 0 01-1 1h-2M5 11h10v6H5v-6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Print
+      </button>
+      <button class="btn btn-primary" id="btnSave" title="Save design as .floorplan file">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 4v12a1 1 0 001 1h10a1 1 0 001-1V7.5L13.5 4H5a1 1 0 00-1 1zm5 9V9m0 4l-2-2m2 2l2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Save
+      </button>
+      <input type="file" id="fileOpenInput" accept=".floorplan" style="display:none" />
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN LAYOUT ===== -->
+<main class="app-main">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+
+    <!-- STEP 1: Room -->
+    <section class="panel" id="panelRoom">
+      <div class="panel-header">
+        <span class="step-badge">1</span>
+        <h2 class="panel-title">Room Dimensions</h2>
+      </div>
+      <div class="panel-body">
+        <p class="panel-hint">Enter your room's real-world dimensions. The canvas will scale automatically.</p>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="roomWidth">Width</label>
+            <div class="input-with-unit">
+              <input type="number" id="roomWidth" class="form-input" placeholder="0" min="1" step="0.1" />
+              <span class="unit-label" id="unitLabelW">ft</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="roomHeight">Length</label>
+            <div class="input-with-unit">
+              <input type="number" id="roomHeight" class="form-input" placeholder="0" min="1" step="0.1" />
+              <span class="unit-label" id="unitLabelH">ft</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="roomName">Room Name (optional)</label>
+          <input type="text" id="roomName" class="form-input" placeholder="e.g. Living Room" />
+        </div>
+        <button class="btn btn-accent full-width" id="btnCreateRoom">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          + Create Room
+        </button>
+        <div class="furniture-list" id="roomsList" style="margin-top:10px">
+          <p class="empty-list-hint">No rooms created yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: Walls -->
+    <section class="panel" id="panelWalls">
+      <div class="panel-header">
+        <span class="step-badge">2</span>
+        <h2 class="panel-title">Draw Walls</h2>
+        <span class="panel-badge" id="wallModeBadge">inactive</span>
+      </div>
+      <div class="panel-body">
+        <p class="panel-hint">Add interior walls, doorways, or features inside your room.</p>
+        <div class="tool-row">
+          <button class="tool-btn" id="btnWallMode" title="Draw wall lines">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M3 17L17 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Draw Wall
+          </button>
+          <button class="tool-btn" id="btnSelectMode" title="Select / move walls">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M6 6l8 4-4 1-1 4-3-9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+            Select
+          </button>
+          <button class="tool-btn danger" id="btnClearWalls" title="Clear all walls">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Clear
+          </button>
+        </div>
+        <div class="hint-box" id="wallHint">
+          <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M8 7v4M8 5.5v.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span>Click to place points. <strong>Shift</strong> = straight H/V line. Click first point to close shape, or double-click to end.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 3: Furniture -->
+    <section class="panel" id="panelFurniture">
+      <div class="panel-header">
+        <span class="step-badge">3</span>
+        <h2 class="panel-title">Furniture Items</h2>
+      </div>
+      <div class="panel-body">
+        <p class="panel-hint">Add furniture pieces. Drag them from the list onto the canvas.</p>
+        <div class="form-group">
+          <label class="form-label" for="furnitureName">Name</label>
+          <input type="text" id="furnitureName" class="form-input" placeholder="e.g. Sofa, Desk, Bed..." />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="furnitureW">Width</label>
+            <div class="input-with-unit">
+              <input type="number" id="furnitureW" class="form-input" placeholder="0" min="0.1" step="0.1" />
+              <span class="unit-label" id="unitLabelFW">ft</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="furnitureH">Depth</label>
+            <div class="input-with-unit">
+              <input type="number" id="furnitureH" class="form-input" placeholder="0" min="0.1" step="0.1" />
+              <span class="unit-label" id="unitLabelFH">ft</span>
+            </div>
+          </div>
+        </div>
+        <div class="color-row">
+          <label class="form-label">Color</label>
+          <div class="color-swatches" id="colorSwatches"></div>
+        </div>
+        <button class="btn btn-accent full-width" id="btnAddFurniture">
+          <svg viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Add Furniture
+        </button>
+
+        <div class="furniture-list" id="furnitureList">
+          <p class="empty-list-hint">No furniture added yet.</p>
+        </div>
+      </div>
+    </section>
+
+  </aside>
+
+  <!-- CANVAS AREA -->
+  <div class="canvas-container" id="canvasContainer">
+    <div class="canvas-toolbar">
+      <button class="icon-btn" id="btnZoomIn" title="Zoom in">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 9h5M9 6.5v5M15 15l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="btnZoomOut" title="Zoom out">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 9h5M15 15l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" id="btnZoomReset" title="Reset zoom">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M4 8V4h4M16 12v4h-4M4 4l5 5M16 16l-5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="zoom-label" id="zoomLabel">100%</div>
+      <div class="toolbar-sep"></div>
+      <!-- Display-unit toggle: switches label format without changing stored data -->
+      <div class="display-unit-toggle" id="displayUnitToggle" title="Switch label display between feet+inches and inches only">
+        <button class="du-btn active" id="duFtIn">ft + in</button>
+        <button class="du-btn" id="duIn">in only</button>
+      </div>
+      <div class="toolbar-sep"></div>
+      <button class="icon-btn labeled" id="btnGridToggle" title="Hide grid lines">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M2 7h16M2 13h16M7 2v16M13 2v16" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span>Grid</span>
+      </button>
+      <button class="icon-btn labeled" id="btnSnapToggle" title="Snap ON – items align to grid">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v3M10 15v3M2 10h3M15 10h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <span>Snap</span>
+      </button>
+      <button class="icon-btn danger" id="btnDeleteSelected" title="Delete selected item">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <div class="canvas-scroll-wrapper" id="canvasScrollWrapper">
+      <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <div class="canvas-status" id="canvasStatus">
+      <span id="statusText">Create a room to get started.</span>
+      <span id="statusCursor"></span>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="renameModal">
+    <div class="modal-header">
+      <h3 class="modal-title">Rename Furniture</h3>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" id="renameInput" class="form-input" placeholder="Furniture name" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-accent" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="app-core.js"></script>
+<script src="app-interact.js"></script>
+<script src="app-ui.js"></script>
+</body>
+</html>
