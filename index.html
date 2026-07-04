@@ -791,7 +791,7 @@
     const scrollWrapper = document.getElementById('canvasScrollWrapper');
 
     function isMobileTablet() {
-      return window.innerWidth <= 900;
+      return window.innerWidth <= 900 || window.matchMedia('(hover: none) and (pointer: coarse)').matches;
     }
 
     function updateRotateBtnVisibility() {
