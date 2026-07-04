@@ -29,6 +29,46 @@ const state = {
 };
 
 // ============================================================
+//  UNDO / REDO HISTORY
+// ============================================================
+const MAX_HISTORY = 50;
+const undoStack = [];
+const redoStack = [];
+
+function commitState() {
+  undoStack.push(JSON.stringify({ rooms: state.rooms, selectedRoomIds: state.selectedRoomIds }));
+  if (undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack.length = 0;
+  if (typeof updateUndoRedoUI === 'function') updateUndoRedoUI();
+}
+
+function undo() {
+  if (undoStack.length === 0) return;
+  redoStack.push(JSON.stringify({ rooms: state.rooms, selectedRoomIds: state.selectedRoomIds }));
+  const prevState = JSON.parse(undoStack.pop());
+  state.rooms = prevState.rooms;
+  state.selectedRoomIds = prevState.selectedRoomIds;
+  state.selected = null;
+  state.wallDraft = null;
+  if (typeof updateUndoRedoUI === 'function') updateUndoRedoUI();
+  if (typeof updateSidebar === 'function') updateSidebar();
+  if (typeof draw === 'function') draw();
+}
+
+function redo() {
+  if (redoStack.length === 0) return;
+  undoStack.push(JSON.stringify({ rooms: state.rooms, selectedRoomIds: state.selectedRoomIds }));
+  const nextState = JSON.parse(redoStack.pop());
+  state.rooms = nextState.rooms;
+  state.selectedRoomIds = nextState.selectedRoomIds;
+  state.selected = null;
+  state.wallDraft = null;
+  if (typeof updateUndoRedoUI === 'function') updateUndoRedoUI();
+  if (typeof updateSidebar === 'function') updateSidebar();
+  if (typeof draw === 'function') draw();
+}
+
+// ============================================================
 //  UNIT HELPERS
 // ============================================================
 const canvas = document.getElementById('mainCanvas');

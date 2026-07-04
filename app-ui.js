@@ -67,6 +67,7 @@ function createOrUpdateRoom() {
   const h=parseFloat(document.getElementById('roomHeight').value);
   const name=document.getElementById('roomName').value.trim();
   if (!w||!h||w<=0||h<=0){alert('Enter valid dimensions.');return;}
+  if (typeof commitState === 'function') commitState();
   if (editingRoomId) {
     const room=state.rooms.find(r=>r.id===editingRoomId);
     if (room){room.realW=w;room.realH=h;room.name=name;}
@@ -111,7 +112,10 @@ document.getElementById('btnSelectMode').addEventListener('click',()=>setTool('s
 document.getElementById('btnClearWalls').addEventListener('click',()=>{
   const id=state.selectedRoomIds[0]||(state.selected&&state.selected.roomId);
   const room=state.rooms.find(r=>r.id===id);
-  if (room) room.walls=[];
+  if (room) {
+    if (typeof commitState === 'function') commitState();
+    room.walls=[];
+  }
   state.wallDraft=null; draw();
 });
 
@@ -238,6 +242,7 @@ function renderRoomsList() {
           draw(); renderRoomsList();
         }
       } else if (btn.dataset.action==='delete-room') {
+        if (typeof commitState === 'function') commitState();
         state.rooms=state.rooms.filter(r=>r.id!==rid);
         state.selectedRoomIds=state.selectedRoomIds.filter(id=>id!==rid);
         if (state.selected&&state.selected.roomId===rid) state.selected=null;
@@ -295,6 +300,7 @@ function renderAllFurnitureLists() {
       const room=state.rooms.find(r=>r.id===roomId);
       if (!room) return;
       if (action==='delete') {
+        if (typeof commitState === 'function') commitState();
         room.furniture=room.furniture.filter(f=>f.id!==id);
         if (state.selected&&state.selected.itemId===id) state.selected=null;
         renderAllFurnitureLists(); draw();
@@ -398,6 +404,38 @@ document.getElementById('btnSave').addEventListener('click', () => {
   document.getElementById('statusText').textContent = 'Design saved as my-floorplan.floorplan';
 });
 
+// ============================================================
+//  UNDO / REDO UI
+// ============================================================
+function updateUndoRedoUI() {
+  const btnUndo = document.getElementById('btnUndo');
+  const btnRedo = document.getElementById('btnRedo');
+  if (btnUndo) btnUndo.disabled = (typeof undoStack === 'undefined' || undoStack.length === 0);
+  if (btnRedo) btnRedo.disabled = (typeof redoStack === 'undefined' || redoStack.length === 0);
+}
+
+document.getElementById('btnUndo')?.addEventListener('click', () => {
+  if (typeof undo === 'function') undo();
+});
+document.getElementById('btnRedo')?.addEventListener('click', () => {
+  if (typeof redo === 'function') redo();
+});
+
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    if (e.shiftKey) {
+      if (typeof redo === 'function') redo();
+    } else {
+      if (typeof undo === 'function') undo();
+    }
+    e.preventDefault();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+    if (typeof redo === 'function') redo();
+    e.preventDefault();
+  }
+});
+
 // ---- OPEN ----
 document.getElementById('btnOpen').addEventListener('click', () => {
   document.getElementById('fileOpenInput').value = '';
@@ -412,6 +450,8 @@ document.getElementById('fileOpenInput').addEventListener('change', e => {
     try {
       const data = JSON.parse(evt.target.result);
       if (!data.rooms || !Array.isArray(data.rooms)) throw new Error('Invalid file format.');
+
+      if (typeof commitState === 'function') commitState();
 
       // Restore persisted state
       state.rooms = data.rooms;

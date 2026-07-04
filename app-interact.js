@@ -224,6 +224,8 @@ function handleWallClick(e) {
 }
 
 function finalizeWall(closed) {
+  if (!state.wallDraft) return;
+  if (typeof commitState === 'function') commitState();
   const d = state.wallDraft;
   if (!d||d.points.length<2) {state.wallDraft=null;draw();return;}
   const room = state.rooms.find(r=>r.id===d.roomId);
@@ -267,15 +269,18 @@ canvas.addEventListener('mousedown', e => {
     const f = hitFurniture(room, cx, cy);
     if (f) {
       if (state.selected && state.selected.itemId===f.id && isRotHandle(f,room,cx,cy)) {
+        if (typeof commitState === 'function') commitState();
         const fcx=room.canvasX+realToPx(f.rx+f.realW/2);
         const fcy=room.canvasY+realToPx(f.ry+f.realH/2);
         mouseDown={type:'rotate',f,room,startAngle:Math.atan2(cy-fcy,cx-fcx),startRot:f.rotation||0};
         return;
       }
       if (state.selected && state.selected.itemId===f.id && isResizeHandle(f,room,cx,cy)) {
+        if (typeof commitState === 'function') commitState();
         mouseDown={type:'resize',f,room,startW:f.realW,startH:f.realH,startCx:cx,startCy:cy};
         return;
       }
+      if (typeof commitState === 'function') commitState();
       state.selected={type:'furniture',roomId:room.id,itemId:f.id};
       const local=toRoomLocal(room,cx,cy);
       mouseDown={type:'dragFurniture',f,room,offRx:local.rx-f.rx,offRy:local.ry-f.ry};
@@ -309,6 +314,7 @@ canvas.addEventListener('mousedown', e => {
       const w=r&&r.walls[ws.wallIdx];
       return {roomId:ws.roomId,wallIdx:ws.wallIdx,startPoints:w?w.points.map(p=>({...p})):[]};
     });
+    if (typeof commitState === 'function') commitState();
     mouseDown={type:'dragWalls',startCx:cx,startCy:cy,walls:startSnaps};
     draw(); return;
   }
@@ -317,6 +323,7 @@ canvas.addEventListener('mousedown', e => {
   const room = hitRoom(cx,cy);
   if (room) {
     if (state.selectedRoomIds.includes(room.id)) {
+      if (typeof commitState === 'function') commitState();
       const dragRooms=state.selectedRoomIds;
       mouseDown={
         type:'dragRooms',ids:dragRooms,startCx:cx,startCy:cy,
@@ -495,6 +502,9 @@ canvas.addEventListener('drop', e=>{
   const local=toRoomLocal(targetRoom,cx,cy);
   const newRx=Math.max(0,Math.min(targetRoom.realW-f.realW,pxToReal(snapPx(realToPx(local.rx-f.realW/2)))));
   const newRy=Math.max(0,Math.min(targetRoom.realH-f.realH,pxToReal(snapPx(realToPx(local.ry-f.realH/2)))));
+
+  if (typeof commitState === 'function') commitState();
+
   if (sourceRoom&&sourceRoom.id!==targetRoom.id) {
     sourceRoom.furniture=sourceRoom.furniture.filter(x=>x.id!==id);
     targetRoom.furniture.push(f);
@@ -519,6 +529,7 @@ document.addEventListener('keydown', e=>{
     if (room) {
       const f=room.furniture.find(x=>x.id===state.selected.itemId);
       if (f) {
+        if (typeof commitState === 'function') commitState();
         const oldRot=f.rotation||0;
         f.rotation=oldRot+Math.PI/2;
         if (wouldCollide(f,room,f.rx,f.ry)) f.rotation=oldRot;
@@ -530,6 +541,7 @@ document.addEventListener('keydown', e=>{
 
 function deleteSelected() {
   if (!state.selected) return;
+  if (typeof commitState === 'function') commitState();
   const {type,roomId,wallIdx,itemId}=state.selected;
   const room=state.rooms.find(r=>r.id===roomId);
   if (type==='room') {
@@ -674,6 +686,7 @@ canvas.addEventListener('touchend', function(e) {
       const room = state.rooms.find(r => r.id === draft.roomId);
       // Ensure a meaningful size in real units before committing
       if (room && (x1 - x0) > 0.5 && (y1 - y0) > 0.5) {
+        if (typeof commitState === 'function') commitState();
         room.walls.push({
           points: [
             { rx: x0, ry: y0 },
