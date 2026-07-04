@@ -86,7 +86,7 @@ function createOrUpdateRoom() {
       'Room created. Tip: Select rooms from the sidebar list.';
     clearRoomEditFields();
     // Show pan tip on mobile/tablet after first room
-    if (isFirstRoom && window.innerWidth <= 900) {
+    if (isFirstRoom && (window.innerWidth <= 900 || window.matchMedia('(hover: none) and (pointer: coarse)').matches)) {
       if (typeof showPanTip === 'function') showPanTip();
     }
   }
@@ -95,10 +95,26 @@ function createOrUpdateRoom() {
 
 function clearRoomEditFields() {
   editingRoomId=null;
-  document.getElementById('roomWidth').value='';
-  document.getElementById('roomHeight').value='';
-  document.getElementById('roomName').value='';
+  const wInput = document.getElementById('roomWidth');
+  const hInput = document.getElementById('roomHeight');
+  const nInput = document.getElementById('roomName');
+  wInput.value=''; wInput.blur();
+  hInput.value=''; hInput.blur();
+  nInput.value=''; nInput.blur();
   document.getElementById('btnCreateRoom').textContent='+ Create Room';
+  // Force iOS Safari to recalculate viewport and restore fixed elements
+  setTimeout(() => window.scrollTo(0, 0), 10);
+}
+
+function clearFurnitureEditFields() {
+  document.getElementById('furnName').value='';
+  document.getElementById('furnName').blur();
+  document.getElementById('furnWidth').value='';
+  document.getElementById('furnWidth').blur();
+  document.getElementById('furnDepth').value='';
+  document.getElementById('furnDepth').blur();
+  // Force iOS Safari to recalculate viewport
+  setTimeout(() => window.scrollTo(0, 0), 10);
 }
 
 function populateRoomEditFields(room) {

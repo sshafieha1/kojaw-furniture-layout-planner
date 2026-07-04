@@ -489,7 +489,7 @@ html, body {
 }
 .furniture-item:hover .furniture-item-actions { opacity: 1; }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .furniture-item-actions {
     opacity: 1; /* Always visible on touch devices */
   }
@@ -1170,8 +1170,8 @@ html, body {
   #mainCanvas { max-width: 100vw; max-height: 100vh; }
 }
 
-/* ===== TABLET (≤ 900px) ===== */
-@media (max-width: 900px) {
+/* ===== TABLET & TOUCH DEVICES ===== */
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   /* Header: compress controls */
   .header-nav { display: none; } /* replaced by mobile-nav-drawer */
   .brand-tagline { display: none; }
@@ -1185,6 +1185,9 @@ html, body {
 
   /* Show mobile nav toggle */
   .mobile-nav-toggle { display: flex; }
+
+  /* Prevent iOS Safari auto-zoom on inputs */
+  .form-input { font-size: 16px !important; }
 
   /* Mobile nav drawer and backdrop become active (controlled by JS open class) */
   .mobile-nav-backdrop { display: block; }
@@ -1427,7 +1430,7 @@ html, body {
   background: rgba(255,90,90,0.1) !important;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
   .mobile-wall-panel { display: block; }
 }
 

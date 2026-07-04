@@ -594,6 +594,7 @@ function updateStatusCursor(cx,cy) {
 let touchStartPos    = null;
 let lastTouchTime    = 0;
 let lastTwoFingerMid = null;
+let lastTwoFingerDist = null;
 
 // ---- helpers ----
 function canvasPosFromClient(clientX, clientY) {
@@ -610,9 +611,10 @@ function roomLocalPt(room, cx, cy) {
 canvas.addEventListener('touchstart', function(e) {
   e.preventDefault();
 
-  // Two-finger pan: just reset, handled in touchmove
+  // Two-finger pan and zoom: just reset, handled in touchmove
   if (e.touches.length === 2) {
     lastTwoFingerMid = null;
+    lastTwoFingerDist = null;
     touchStartPos = null;
     return;
   }
@@ -622,7 +624,7 @@ canvas.addEventListener('touchstart', function(e) {
   touchStartPos = { x: touch.clientX, y: touch.clientY, time: Date.now() };
 
   // ---- WALL TOOL on mobile: start rectangular drag ----
-  if (state.tool === 'wall' && window.innerWidth <= 900) {
+  if (state.tool === 'wall' && (window.innerWidth <= 900 || window.matchMedia('(hover: none) and (pointer: coarse)').matches)) {
     const { cx, cy } = canvasPosFromClient(touch.clientX, touch.clientY);
     const room = hitRoom(cx, cy);
     if (room) {
@@ -650,21 +652,35 @@ canvas.addEventListener('touchstart', function(e) {
 canvas.addEventListener('touchmove', function(e) {
   e.preventDefault();
 
-  // ---- Two-finger pan ----
+  // ---- Two-finger pan and zoom ----
   if (e.touches.length === 2) {
     const t1 = e.touches[0], t2 = e.touches[1];
     const midX = (t1.clientX + t2.clientX) / 2;
     const midY = (t1.clientY + t2.clientY) / 2;
-    if (lastTwoFingerMid) {
+    const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+    
+    if (lastTwoFingerMid && lastTwoFingerDist) {
+      // Pan
       const dx = midX - lastTwoFingerMid.x;
       const dy = midY - lastTwoFingerMid.y;
       const wrapper = document.getElementById('canvasScrollWrapper');
       if (wrapper) { wrapper.scrollLeft -= dx; wrapper.scrollTop -= dy; }
+      
+      // Zoom
+      if (Math.abs(dist - lastTwoFingerDist) > 3) {
+        const zoomDelta = dist / lastTwoFingerDist;
+        if (typeof setZoom === 'function' && typeof state !== 'undefined') {
+          // Adjust zoom smoothly based on distance change
+          setZoom(state.zoom * zoomDelta);
+        }
+      }
     }
     lastTwoFingerMid = { x: midX, y: midY };
+    lastTwoFingerDist = dist;
     return;
   }
   lastTwoFingerMid = null;
+  lastTwoFingerDist = null;
   if (e.touches.length !== 1) return;
 
   const touch = e.touches[0];
@@ -689,8 +705,10 @@ canvas.addEventListener('touchmove', function(e) {
 }, { passive: false });
 
 canvas.addEventListener('touchend', function(e) {
-  e.preventDefault();
-  if (e.touches.length < 2) lastTwoFingerMid = null;
+  if (e.touches.length < 2) {
+    lastTwoFingerMid = null;
+    lastTwoFingerDist = null;
+  }
 
   // ---- WALL TOOL on mobile: finalize the rectangle ----
   if (state.tool === 'wall' && state.wallDraft && state.wallDraft.mobileRect) {
