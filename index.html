@@ -302,6 +302,9 @@
   <div class="canvas-container" id="canvasContainer">
     <!-- Rotation warning toast (all users) -->
     <div class="rotate-warning-toast" id="rotateWarningToast">⚠ Can't rotate — not enough space!</div>
+    
+    <!-- Global No space toast -->
+    <div class="global-no-space-toast" id="globalNoSpaceToast">✗ Not enough space!</div>
 
     <div class="canvas-toolbar">
       <button class="icon-btn" id="btnZoomIn" title="Zoom in">
@@ -751,15 +754,29 @@
     });
   })();
 
-  // ===== ROTATION WARNING TOAST =====
+  // ===== TOASTS =====
   window.showRotateWarning = (function () {
     const toast = document.getElementById('rotateWarningToast');
     let hideTimer = null;
     return function () {
-      // Restart animation by removing/re-adding the class
       toast.classList.remove('show');
       if (hideTimer) clearTimeout(hideTimer);
-      void toast.offsetWidth; // force reflow
+      void toast.offsetWidth;
+      toast.classList.add('show');
+      hideTimer = setTimeout(function () {
+        toast.classList.remove('show');
+        hideTimer = null;
+      }, 3000);
+    };
+  })();
+
+  window.showGlobalNoSpaceToast = (function () {
+    const toast = document.getElementById('globalNoSpaceToast');
+    let hideTimer = null;
+    return function () {
+      toast.classList.remove('show');
+      if (hideTimer) clearTimeout(hideTimer);
+      void toast.offsetWidth;
       toast.classList.add('show');
       hideTimer = setTimeout(function () {
         toast.classList.remove('show');

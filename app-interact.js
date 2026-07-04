@@ -528,7 +528,11 @@ canvas.addEventListener('drop', e=>{
     sourceRoom.furniture=sourceRoom.furniture.filter(x=>x.id!==id);
     targetRoom.furniture.push(f);
   }
-  if (!wouldCollide(f,targetRoom,newRx,newRy)){f.rx=newRx;f.ry=newRy;}
+  if (!wouldCollide(f,targetRoom,newRx,newRy)){
+    f.rx=newRx;
+    f.ry=newRy;
+    f.hidden=false; // Ensure it's unhidden if dragged successfully
+  }
   state.selected={type:'furniture',roomId:targetRoom.id,itemId:f.id};
   draw(); renderSidebar();
 });
