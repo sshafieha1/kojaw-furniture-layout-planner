@@ -549,3 +549,174 @@ function updateStatusCursor(cx,cy) {
   document.getElementById('statusCursor').textContent=
     `${formatDim(Math.max(0,pxToReal(cx)))} , ${formatDim(Math.max(0,pxToReal(cy)))}`;
 }
+
+// ============================================================
+//  TOUCH SUPPORT (mobile / tablet)
+// ============================================================
+let touchStartPos    = null;
+let lastTouchTime    = 0;
+let lastTwoFingerMid = null;
+
+// ---- helpers ----
+function canvasPosFromClient(clientX, clientY) {
+  return canvasPos({ clientX, clientY });
+}
+function roomLocalPt(room, cx, cy) {
+  const sl = snapToRoomLocal(room, cx, cy);
+  return {
+    rx: Math.max(0, Math.min(room.realW, sl.rx)),
+    ry: Math.max(0, Math.min(room.realH, sl.ry)),
+  };
+}
+
+canvas.addEventListener('touchstart', function(e) {
+  e.preventDefault();
+
+  // Two-finger pan: just reset, handled in touchmove
+  if (e.touches.length === 2) {
+    lastTwoFingerMid = null;
+    touchStartPos = null;
+    return;
+  }
+  if (e.touches.length !== 1) return;
+
+  const touch = e.touches[0];
+  touchStartPos = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+
+  // ---- WALL TOOL on mobile: start rectangular drag ----
+  if (state.tool === 'wall' && window.innerWidth <= 900) {
+    const { cx, cy } = canvasPosFromClient(touch.clientX, touch.clientY);
+    const room = hitRoom(cx, cy);
+    if (room) {
+      const edgeSnap = snapToRoomEdges(room, cx, cy);
+      let pt;
+      if (edgeSnap) {
+        pt = { rx: pxToReal(edgeSnap.cx - room.canvasX), ry: pxToReal(edgeSnap.cy - room.canvasY) };
+      } else {
+        pt = roomLocalPt(room, cx, cy);
+      }
+      state.wallDraft = { roomId: room.id, points: [pt], mouse: pt, snapPt: null, mobileRect: true };
+      draw();
+    }
+    return; // Don't dispatch mousedown — touch handles it entirely
+  }
+
+  // All other tools: dispatch mousedown so existing handlers work
+  canvas.dispatchEvent(new MouseEvent('mousedown', {
+    bubbles: true, cancelable: true, button: 0,
+    clientX: touch.clientX, clientY: touch.clientY,
+    ctrlKey: false, metaKey: false, shiftKey: false,
+  }));
+}, { passive: false });
+
+canvas.addEventListener('touchmove', function(e) {
+  e.preventDefault();
+
+  // ---- Two-finger pan ----
+  if (e.touches.length === 2) {
+    const t1 = e.touches[0], t2 = e.touches[1];
+    const midX = (t1.clientX + t2.clientX) / 2;
+    const midY = (t1.clientY + t2.clientY) / 2;
+    if (lastTwoFingerMid) {
+      const dx = midX - lastTwoFingerMid.x;
+      const dy = midY - lastTwoFingerMid.y;
+      const wrapper = document.getElementById('canvasScrollWrapper');
+      if (wrapper) { wrapper.scrollLeft -= dx; wrapper.scrollTop -= dy; }
+    }
+    lastTwoFingerMid = { x: midX, y: midY };
+    return;
+  }
+  lastTwoFingerMid = null;
+  if (e.touches.length !== 1) return;
+
+  const touch = e.touches[0];
+
+  // ---- WALL TOOL on mobile: update rectangle end point ----
+  if (state.tool === 'wall' && state.wallDraft && state.wallDraft.mobileRect) {
+    const { cx, cy } = canvasPosFromClient(touch.clientX, touch.clientY);
+    const room = state.rooms.find(r => r.id === state.wallDraft.roomId);
+    if (room) {
+      state.wallDraft.mouse = roomLocalPt(room, cx, cy);
+      draw();
+    }
+    return;
+  }
+
+  // Normal single-finger move
+  canvas.dispatchEvent(new MouseEvent('mousemove', {
+    bubbles: true, cancelable: true,
+    clientX: touch.clientX, clientY: touch.clientY,
+    shiftKey: false,
+  }));
+}, { passive: false });
+
+canvas.addEventListener('touchend', function(e) {
+  e.preventDefault();
+  if (e.touches.length < 2) lastTwoFingerMid = null;
+
+  // ---- WALL TOOL on mobile: finalize the rectangle ----
+  if (state.tool === 'wall' && state.wallDraft && state.wallDraft.mobileRect) {
+    const draft = state.wallDraft;
+    const start = draft.points[0];
+    const end   = draft.mouse || start;
+
+    // Only commit if the user dragged meaningfully (≥20 screen pixels)
+    const t       = e.changedTouches[0];
+    const screenDX = touchStartPos ? (t.clientX - touchStartPos.x) : 0;
+    const screenDY = touchStartPos ? (t.clientY - touchStartPos.y) : 0;
+    const screenDist = Math.sqrt(screenDX * screenDX + screenDY * screenDY);
+
+    if (screenDist >= 20) {
+      const x0 = Math.min(start.rx, end.rx);
+      const y0 = Math.min(start.ry, end.ry);
+      const x1 = Math.max(start.rx, end.rx);
+      const y1 = Math.max(start.ry, end.ry);
+      const room = state.rooms.find(r => r.id === draft.roomId);
+      // Ensure a meaningful size in real units before committing
+      if (room && (x1 - x0) > 0.5 && (y1 - y0) > 0.5) {
+        room.walls.push({
+          points: [
+            { rx: x0, ry: y0 },
+            { rx: x1, ry: y0 },
+            { rx: x1, ry: y1 },
+            { rx: x0, ry: y1 },
+          ],
+          closed: true,
+        });
+      }
+    }
+
+    state.wallDraft = null;
+    const overlay = document.getElementById('wallMeasureOverlay');
+    if (overlay) overlay.classList.remove('active');
+    draw();
+    touchStartPos = null;
+    return;
+  }
+
+  // Normal: dispatch mouseup then check for tap/double-tap
+  canvas.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0 }));
+
+  if (!touchStartPos) return;
+  const now     = Date.now();
+  const elapsed = now - touchStartPos.time;
+  const t       = e.changedTouches[0];
+  const dx      = (t?.clientX || touchStartPos.x) - touchStartPos.x;
+  const dy      = (t?.clientY || touchStartPos.y) - touchStartPos.y;
+  const dist    = Math.sqrt(dx * dx + dy * dy);
+
+  if (elapsed < 500 && dist < 14) {
+    canvas.dispatchEvent(new MouseEvent('click', {
+      bubbles: true, cancelable: true, button: 0,
+      clientX: t.clientX, clientY: t.clientY,
+    }));
+    if (now - lastTouchTime < 350) {
+      canvas.dispatchEvent(new MouseEvent('dblclick', {
+        bubbles: true, cancelable: true, button: 0,
+        clientX: t.clientX, clientY: t.clientY,
+      }));
+    }
+    lastTouchTime = now;
+  }
+  touchStartPos = null;
+}, { passive: false });

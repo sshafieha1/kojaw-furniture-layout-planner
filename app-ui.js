@@ -123,23 +123,21 @@ function setTool(t) {
   document.getElementById('btnWallMode').classList.toggle('active',t==='wall');
   document.getElementById('btnSelectMode').classList.toggle('active',t==='select');
   if (t==='wall') {
-    // Auto-deselect furniture and walls, keep room selection
     if (state.selected && state.selected.type !== 'room') state.selected=null;
     state.selectedWalls=[];
     if (state.snapGrid) {
       state.snapGrid = false;
       const btnSnap = document.getElementById('btnSnapToggle');
-      if (btnSnap) {
-        btnSnap.classList.remove('active');
-        btnSnap.title = 'Snap OFF';
-      }
+      if (btnSnap) { btnSnap.classList.remove('active'); btnSnap.title = 'Snap OFF'; }
     }
     draw();
   } else {
-    state.wallDraft=null; draw();
+    state.wallDraft=null;
+    draw();
   }
   document.getElementById('wallHint').style.display=t==='wall'?'flex':'none';
 }
+
 
 // ============================================================
 //  ADD FURNITURE

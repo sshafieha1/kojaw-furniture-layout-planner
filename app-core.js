@@ -312,13 +312,50 @@ function drawRoomWalls(room) {
       state.selected.wallIdx === wi) ||
       selWalls.some(w => w.roomId === room.id && w.wallIdx === wi);
 
+    const toX = p => ox + realToPx(p.rx);
+    const toY = p => oy + realToPx(p.ry);
+
+    // === HATCH FILL for closed walls ===
+    if (wall.closed && wall.points.length >= 3) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(toX(wall.points[0]), toY(wall.points[0]));
+      wall.points.slice(1).forEach(p => ctx.lineTo(toX(p), toY(p)));
+      ctx.closePath();
+      ctx.clip();
+
+      const xs = wall.points.map(p => toX(p));
+      const ys = wall.points.map(p => toY(p));
+      const bMinX = Math.min(...xs) - 2;
+      const bMaxX = Math.max(...xs) + 2;
+      const bMinY = Math.min(...ys) - 2;
+      const bMaxY = Math.max(...ys) + 2;
+
+      // Semi-transparent white diagonal hatching at 45°
+      ctx.strokeStyle = isSel ? 'rgba(0,212,170,0.22)' : 'rgba(255,255,255,0.14)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([]);
+      const spacing = 12;
+      // Lines: y = x + c (slope 1, 45°)
+      // c ranges from bMinY-bMaxX to bMaxY-bMinX to cover the whole box
+      const cMin = (bMinY - bMaxX) - spacing;
+      const cMax = (bMaxY - bMinX) + spacing;
+      const ext  = (bMaxX - bMinX) + (bMaxY - bMinY);
+      for (let c = cMin; c <= cMax; c += spacing) {
+        ctx.beginPath();
+        ctx.moveTo(bMinX - ext, (bMinX - ext) + c);
+        ctx.lineTo(bMaxX + ext, (bMaxX + ext) + c);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // === OUTLINE + LABELS + HANDLES ===
     ctx.save();
     ctx.strokeStyle = isSel ? '#00d4aa' : '#cbd5e1';
     ctx.lineWidth   = isSel ? 4 : 2;
     ctx.setLineDash([]);
     ctx.beginPath();
-    const toX = p => ox + realToPx(p.rx);
-    const toY = p => oy + realToPx(p.ry);
     ctx.moveTo(toX(wall.points[0]), toY(wall.points[0]));
     wall.points.slice(1).forEach(p => ctx.lineTo(toX(p), toY(p)));
     if (wall.closed) ctx.closePath();
@@ -369,12 +406,100 @@ function drawSegLabel(x1,y1,x2,y2,highlighted) {
 // ============================================================
 function drawWallDraft() {
   const d = state.wallDraft;
-  if (!d || d.points.length === 0) return;
+  const overlay = document.getElementById('wallMeasureOverlay');
+
+  if (!d || d.points.length === 0) {
+    if (overlay) overlay.classList.remove('active');
+    return;
+  }
+
   const room = state.rooms.find(r => r.id === d.roomId);
-  if (!room) return;
+  if (!room) { if (overlay) overlay.classList.remove('active'); return; }
   const { ox, oy } = roomOrigin(room);
   const toX = r => ox + realToPx(r.rx);
   const toY = r => oy + realToPx(r.ry);
+
+  // ============================================================
+  //  MOBILE: rectangular tap-drag preview
+  // ============================================================
+  if (d.mobileRect) {
+    const start = d.points[0];
+    const end   = d.mouse || start;
+
+    const w = Math.abs(end.rx - start.rx);
+    const h = Math.abs(end.ry - start.ry);
+
+    // Update overlay with W x H
+    if (overlay) {
+      if (w < 0.01 && h < 0.01) {
+        overlay.classList.remove('active');
+      } else {
+        overlay.innerHTML = '<span class="wm-label">Width × Height</span>' +
+          formatDim(w) + ' × ' + formatDim(h);
+        overlay.classList.add('active');
+      }
+    }
+
+    const sx = toX(start), sy = toY(start);
+    const ex = ox + realToPx(end.rx), ey = oy + realToPx(end.ry);
+    const rX = Math.min(sx, ex), rY = Math.min(sy, ey);
+    const rW = Math.abs(ex - sx), rH = Math.abs(ey - sy);
+
+    ctx.save();
+
+    // Semi-transparent fill
+    ctx.fillStyle = 'rgba(108,99,255,0.13)';
+    ctx.fillRect(rX, rY, rW, rH);
+
+    // Dashed outline
+    ctx.strokeStyle = 'rgba(108,99,255,0.95)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([7, 4]);
+    ctx.strokeRect(rX, rY, rW, rH);
+    ctx.setLineDash([]);
+
+    // Dimension labels on each edge
+    if (rW > 40) {
+      drawSegLabel(rX, rY, rX + rW, rY, true);           // top
+      drawSegLabel(rX, rY + rH, rX + rW, rY + rH, true); // bottom
+    }
+    if (rH > 40) {
+      drawSegLabel(rX, rY, rX, rY + rH, true);           // left
+      drawSegLabel(rX + rW, rY, rX + rW, rY + rH, true); // right
+    }
+
+    // Corner dots
+    [[rX, rY],[rX+rW, rY],[rX+rW, rY+rH],[rX, rY+rH]].forEach(([cx, cy]) => {
+      ctx.fillStyle = '#6c63ff';
+      ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI*2); ctx.fill();
+    });
+    // Start-corner highlight
+    ctx.fillStyle = '#00d4aa';
+    ctx.beginPath(); ctx.arc(sx, sy, 6, 0, Math.PI*2); ctx.fill();
+
+    ctx.restore();
+    return;
+  }
+
+  // ============================================================
+  //  DESKTOP: polyline preview (unchanged)
+  // ============================================================
+  if (overlay) {
+    if (!d.mouse) {
+      overlay.classList.remove('active');
+    } else {
+      const last = d.points[d.points.length - 1];
+      const dx   = d.mouse.rx - last.rx;
+      const dy   = d.mouse.ry - last.ry;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 0.01) {
+        overlay.classList.remove('active');
+      } else {
+        overlay.innerHTML = '<span class="wm-label">Current segment</span>' + formatDim(dist);
+        overlay.classList.add('active');
+      }
+    }
+  }
 
   ctx.save();
   ctx.strokeStyle = 'rgba(108,99,255,0.9)';
@@ -387,19 +512,16 @@ function drawWallDraft() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // live measurement from last point to mouse
   if (d.mouse && d.points.length > 0) {
     const last = d.points[d.points.length - 1];
     drawSegLabel(toX(last), toY(last), ox+realToPx(d.mouse.rx), oy+realToPx(d.mouse.ry), true);
   }
 
-  // point dots
   d.points.forEach((p, i) => {
     ctx.fillStyle = i === 0 ? '#00d4aa' : '#6c63ff';
     ctx.beginPath(); ctx.arc(toX(p), toY(p), 5, 0, Math.PI*2); ctx.fill();
   });
 
-  // snap indicator
   if (d.snapPt) {
     ctx.strokeStyle = '#00d4aa';
     ctx.lineWidth = 1.5;

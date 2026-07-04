@@ -23,6 +23,19 @@
     <span class="brand-name">Kojaw?</span>
     <span class="brand-tagline">Furniture Layout Planner</span>
   </div>
+
+  <!-- NAV LINKS -->
+  <nav class="header-nav">
+    <button class="nav-link" id="btnHowToUse">How to Use</button>
+    <button class="nav-link" id="btnAbout">About</button>
+    <a class="nav-link" href="https://github.com/sshafieha1/kojaw-furniture-layout-planner" target="_blank" rel="noopener noreferrer" id="btnGitHub">
+      <svg viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;flex-shrink:0">
+        <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.477 0 10c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .269.18.58.688.482C17.138 18.163 20 14.418 20 10c0-5.523-4.478-10-10-10z" clip-rule="evenodd"/>
+      </svg>
+      GitHub
+    </a>
+  </nav>
+
   <div class="header-controls">
     <div class="unit-toggle" id="unitToggle">
       <button class="unit-btn active" data-unit="imperial" id="imperialBtn">Imperial (in)</button>
@@ -46,8 +59,64 @@
   </div>
 </header>
 
+<!-- ===== HOW TO USE POPUP ===== -->
+<div class="about-popup" id="howToUsePopup" aria-hidden="true">
+  <div class="about-popup-inner">
+    <button class="about-close" id="howToUseClose" aria-label="Close how to use panel">&times;</button>
+    <h2 class="about-title">How to Use</h2>
+    <div class="about-body">
+      <p><strong>Step 1 – Create a Room:</strong> Open the sidebar (tap the ☰ button on mobile/tablet), enter your room’s width and length, give it an optional name, then tap <em>+ Create Room</em>. You can create multiple rooms and arrange them freely on the canvas.</p>
+      <p><strong>Step 2 – Draw Walls (desktop):</strong> In the <em>Draw Walls</em> panel, click <em>Draw Wall</em>, then click points on the canvas to place wall segments. Hold <strong>Shift</strong> to snap to horizontal or vertical. Double-click to finish an open wall, or click your starting point to close the shape and fill it with a hatch pattern.</p>
+      <p><strong>Step 2 – Draw Walls (mobile/tablet):</strong> Tap <em>Draw Wall</em> in the sidebar, then <strong>press and drag</strong> anywhere inside a room. A live rectangle preview appears as you drag, showing the exact width and height. Lift your finger to place the wall. Drag a larger area for a bigger wall — small taps are ignored.</p>
+      <p><strong>Step 3 – Add Furniture:</strong> Enter a name, real-world width and depth, pick a color, and tap <em>Add Furniture</em>. Drag pieces from the list onto the canvas, then tap to select, rotate, or resize them with the on-canvas handles.</p>
+      <p><strong>Navigating the Canvas:</strong> On desktop, use the scroll bars. On mobile/tablet, drag with <strong>two fingers</strong> simultaneously to pan around the canvas.</p>
+      <p><strong>Measurement Units:</strong> Choose <em>Imperial (in)</em> or <em>Metric (m/cm)</em> via the top-right toggle. In imperial mode, <em>ft + in</em> shows labels as feet and inches (e.g. 3′ 6″) while <em>in only</em> shows total fractional inches (e.g. 42½″).</p>
+      <p><strong>Saving &amp; Loading:</strong> Tap <em>Save</em> to download your layout as a <code>.floorplan</code> file, <em>Open</em> to reload it, and <em>Print</em> for a clean canvas export.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ABOUT POPUP ===== -->
+<div class="about-popup" id="aboutPopup" aria-hidden="true">
+  <div class="about-popup-inner">
+    <button class="about-close" id="aboutClose" aria-label="Close about panel">&times;</button>
+    <h2 class="about-title">About Kojaw?</h2>
+    <div class="about-body">
+      <p><strong>Date written:</strong> June 3rd, 2026</p>
+      <p>I'm Sahand Shafieha, a Statistics and Data Science graduate (Class of 2026) from UC Santa Barbara. I like building things that are simple, easy to use, and to the point.</p>
+      <p>The idea for this project came from my mom. When we moved into our new apartment, she sketched a simple layout of our living room, measured each piece of furniture, and cut out paper pieces to scale. Then she tested different layouts on paper instead of physically moving furniture around, which saved a lot of time and effort.</p>
+      <p>Most "design your room" apps are either overly complicated or require creating an account, only to fall short of what you actually needed. This project is my attempt at something simpler: no clutter, no signup, just a fast way to plan a room.</p>
+      <p>Special thanks to my mom for the inspiration. I hope you enjoy using this app, and stay tuned for more features and improvements!</p>
+    </div>
+    <div class="about-footer">
+      <a class="btn btn-about-link" href="https://www.linkedin.com/in/sahandshafieha/" target="_blank" rel="noopener noreferrer" id="btnLinkedIn">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;flex-shrink:0">
+          <path d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014V7.498h2.558v1.168h.036c.356-.674 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.967zM5.005 6.33a1.548 1.548 0 11-.003-3.097 1.548 1.548 0 01.003 3.097zm-1.337 10.008h2.67V7.498h-2.67v8.84zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z"/>
+        </svg>
+        Sahand's LinkedIn
+      </a>
+      <a class="btn btn-about-link btn-about-github" href="https://github.com/sshafieha1" target="_blank" rel="noopener noreferrer" id="btnSahandGitHub">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:15px;height:15px;flex-shrink:0">
+          <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.477 0 10c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .269.18.58.688.482C17.138 18.163 20 14.418 20 10c0-5.523-4.478-10-10-10z" clip-rule="evenodd"/>
+        </svg>
+        Sahand's GitHub
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIDEBAR BACKDROP (mobile) ===== -->
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
 <!-- ===== MAIN LAYOUT ===== -->
 <main class="app-main">
+
+  <!-- SIDEBAR TOGGLE BUTTON -->
+  <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+    <svg viewBox="0 0 20 20" fill="none" id="sidebarToggleIcon">
+      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+  </button>
 
   <!-- LEFT SIDEBAR -->
   <aside class="sidebar" id="sidebar">
@@ -200,6 +269,8 @@
 
     <div class="canvas-scroll-wrapper" id="canvasScrollWrapper">
       <canvas id="mainCanvas"></canvas>
+      <!-- Wall drawing live measurement overlay -->
+      <div class="wall-measure-overlay" id="wallMeasureOverlay" aria-live="polite"></div>
     </div>
 
     <div class="canvas-status" id="canvasStatus">
@@ -230,5 +301,131 @@
 <script src="app-core.js"></script>
 <script src="app-interact.js"></script>
 <script src="app-ui.js"></script>
+<script>
+  (function () {
+    const btnAbout  = document.getElementById('btnAbout');
+    const aboutPopup = document.getElementById('aboutPopup');
+    const aboutClose = document.getElementById('aboutClose');
+
+    function openAbout() {
+      aboutPopup.classList.add('open');
+      aboutPopup.setAttribute('aria-hidden', 'false');
+      btnAbout.classList.add('active');
+    }
+
+    function closeAbout() {
+      aboutPopup.classList.remove('open');
+      aboutPopup.setAttribute('aria-hidden', 'true');
+      btnAbout.classList.remove('active');
+    }
+
+    btnAbout.addEventListener('click', function () {
+      aboutPopup.classList.contains('open') ? closeAbout() : openAbout();
+    });
+
+    aboutClose.addEventListener('click', closeAbout);
+
+    // Close when clicking outside the popup
+    document.addEventListener('click', function (e) {
+      if (
+        aboutPopup.classList.contains('open') &&
+        !aboutPopup.contains(e.target) &&
+        e.target !== btnAbout
+      ) {
+        closeAbout();
+      }
+    });
+  })();
+
+  // ===== HOW TO USE POPUP =====
+  (function () {
+    const btnHowToUse   = document.getElementById('btnHowToUse');
+    const howToUsePopup = document.getElementById('howToUsePopup');
+    const howToUseClose = document.getElementById('howToUseClose');
+    const aboutPopup    = document.getElementById('aboutPopup');
+    const btnAbout      = document.getElementById('btnAbout');
+
+    function openHowToUse() {
+      // Close About if open
+      aboutPopup.classList.remove('open');
+      aboutPopup.setAttribute('aria-hidden', 'true');
+      btnAbout.classList.remove('active');
+      // Open How To Use
+      howToUsePopup.classList.add('open');
+      howToUsePopup.setAttribute('aria-hidden', 'false');
+      btnHowToUse.classList.add('active');
+    }
+
+    function closeHowToUse() {
+      howToUsePopup.classList.remove('open');
+      howToUsePopup.setAttribute('aria-hidden', 'true');
+      btnHowToUse.classList.remove('active');
+    }
+
+    btnHowToUse.addEventListener('click', function () {
+      howToUsePopup.classList.contains('open') ? closeHowToUse() : openHowToUse();
+    });
+
+    howToUseClose.addEventListener('click', closeHowToUse);
+
+    document.addEventListener('click', function (e) {
+      if (
+        howToUsePopup.classList.contains('open') &&
+        !howToUsePopup.contains(e.target) &&
+        e.target !== btnHowToUse
+      ) {
+        closeHowToUse();
+      }
+    });
+  })();
+
+  // ===== SIDEBAR TOGGLE =====
+  (function () {
+    const sidebar        = document.getElementById('sidebar');
+    const toggleBtn      = document.getElementById('sidebarToggle');
+    const backdrop       = document.getElementById('sidebarBackdrop');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      backdrop.classList.add('visible');
+      toggleBtn.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      backdrop.classList.remove('visible');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    toggleBtn.addEventListener('click', function () {
+      sidebar.classList.contains('open') ? closeSidebar() : openSidebar();
+    });
+
+    backdrop.addEventListener('click', closeSidebar);
+
+    // Close sidebar after selecting a panel item on mobile
+    sidebar.addEventListener('click', function (e) {
+      const btn = e.target.closest('button.btn, button.tool-btn');
+      if (btn && window.innerWidth <= 900) {
+        // Only close after actual action buttons (not panel-header toggles)
+        if (btn.id === 'btnCreateRoom' || btn.id === 'btnAddFurniture' ||
+            btn.id === 'btnWallMode'   || btn.id === 'btnSelectMode' ||
+            btn.id === 'btnClearWalls') {
+          setTimeout(closeSidebar, 200);
+        }
+      }
+    });
+  })();
+
+  // ===== WALL MEASURE OVERLAY (hide when not in wall mode) =====
+  (function () {
+    const overlay = document.getElementById('wallMeasureOverlay');
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') overlay.classList.remove('active');
+    });
+  })();
+
+</script>
+
 </body>
 </html>
