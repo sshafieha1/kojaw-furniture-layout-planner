@@ -73,6 +73,7 @@ function createOrUpdateRoom() {
     if (room){room.realW=w;room.realH=h;room.name=name;}
     clearRoomEditFields();
   } else {
+    const isFirstRoom = state.rooms.length === 0;
     const offset=state.rooms.length*(realToPx(10)+20);
     const room={
       id:'room_'+Date.now(), name, realW:w, realH:h,
@@ -84,6 +85,10 @@ function createOrUpdateRoom() {
     document.getElementById('statusText').textContent=
       'Room created. Tip: Select rooms from the sidebar list.';
     clearRoomEditFields();
+    // Show pan tip on mobile/tablet after first room
+    if (isFirstRoom && window.innerWidth <= 900) {
+      if (typeof showPanTip === 'function') showPanTip();
+    }
   }
   draw(); renderSidebar();
 }
@@ -144,29 +149,120 @@ function setTool(t) {
 
 
 // ============================================================
+//  SPACE-FINDING HELPER (used by mobile room picker)
+// ============================================================
+
+/**
+ * Scan `room` for a collision-free position for furniture `f`.
+ *
+ * Why the old version failed:
+ *   It used step = min(realW,realH)/2 which is huge for large items (e.g.
+ *   26" for a 52"×72" bed). The scan jumped 0→26→52→78... and completely
+ *   missed valid positions like rx=54 or ry=50.
+ *
+ * Fix:
+ *   Use the minor grid unit (3 in / 10 cm) as the step.  This matches the
+ *   snap grid, guarantees no valid spot is skipped, and is still fast even
+ *   for very large rooms (worst-case ~10 000 iterations per orientation).
+ *
+ * Both the natural orientation AND 90° rotation are tried so that a tall
+ * item that doesn't fit upright can still be placed on its side.
+ * Returns { rx, ry, rotation, realW, realH } or null if no spot found.
+ */
+function findFreeSpot(f, room) {
+  // Use the minor grid unit so the step matches the snap grid.
+  // GRID_MINOR = { imperial: 3, metric: 10 } (inches / cm)
+  const step = (typeof GRID_MINOR !== 'undefined' && typeof state !== 'undefined')
+    ? GRID_MINOR[state.unit]
+    : 3;
+
+  // Build orientation list; skip the rotated variant when dimensions are equal.
+  const orientations = [{ realW: f.realW, realH: f.realH, rotation: 0 }];
+  if (Math.abs(f.realW - f.realH) > 0.01) {
+    orientations.push({ realW: f.realH, realH: f.realW, rotation: Math.PI / 2 });
+  }
+
+  // Give a tiny id that won't match any real furniture so wouldCollide
+  // doesn't skip the "other furniture" collision check.
+  const testF = { ...f, id: '__scan__' };
+
+  for (const orient of orientations) {
+    testF.realW    = orient.realW;
+    testF.realH    = orient.realH;
+    testF.rotation = orient.rotation;
+
+    // Maximum anchor point where the item still fits inside the room.
+    const maxRx = room.realW - orient.realW;
+    const maxRy = room.realH - orient.realH;
+    if (maxRx < 0 || maxRy < 0) continue; // item larger than room in this orientation
+
+    for (let ry = 0; ry <= maxRy + 0.001; ry += step) {
+      const clampedRy = Math.min(ry, maxRy);
+      for (let rx = 0; rx <= maxRx + 0.001; rx += step) {
+        const clampedRx = Math.min(rx, maxRx);
+        testF.rx = clampedRx;
+        testF.ry = clampedRy;
+        if (!wouldCollide(testF, room, clampedRx, clampedRy)) {
+          return {
+            rx: clampedRx, ry: clampedRy,
+            rotation: orient.rotation,
+            realW: orient.realW, realH: orient.realH,
+          };
+        }
+      }
+    }
+  }
+  return null; // genuinely no space found
+}
+
+
+// ============================================================
 //  ADD FURNITURE
 // ============================================================
-document.getElementById('btnAddFurniture').addEventListener('click',()=>{
-  const name=document.getElementById('furnitureName').value.trim()||'Item';
-  const w=parseFloat(document.getElementById('furnitureW').value);
-  const h=parseFloat(document.getElementById('furnitureH').value);
-  if (!w||!h||w<=0||h<=0){alert('Enter valid furniture dimensions.');return;}
+document.getElementById('btnAddFurniture').addEventListener('click', () => {
+  const name = document.getElementById('furnitureName').value.trim() || 'Item';
+  const w    = parseFloat(document.getElementById('furnitureW').value);
+  const h    = parseFloat(document.getElementById('furnitureH').value);
+  if (!w || !h || w <= 0 || h <= 0) { alert('Enter valid furniture dimensions.'); return; }
+
+  // ---- MOBILE / TABLET: show room-picker sheet ----
+  if (window.innerWidth <= 900) {
+    // Close sidebar first
+    const sidebar  = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const toggleBtn = document.getElementById('sidebarToggle');
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('visible');
+    toggleBtn.setAttribute('aria-expanded', 'false');
+
+    if (state.rooms.length === 0) {
+      alert('Create a room first before adding furniture.');
+      return;
+    }
+    // Show picker with pending furniture data
+    if (typeof openRoomPicker === 'function') {
+      openRoomPicker({ name, realW: w, realH: h, color: state.selectedColor });
+    }
+    return;
+  }
+
+  // ---- DESKTOP: original behaviour ----
   let targetIds = state.selectedRoomIds;
   if (targetIds.length === 0 && state.rooms.length > 0) {
-      targetIds = [state.rooms[0].id];
+    targetIds = [state.rooms[0].id];
   }
-  targetIds.forEach(rid=>{
-    const room=state.rooms.find(r=>r.id===rid);
+  targetIds.forEach(rid => {
+    const room = state.rooms.find(r => r.id === rid);
     if (!room) return;
     room.furniture.push({
-      id:'f_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
-      name, realW:w, realH:h, color:state.selectedColor,
-      rx:undefined, ry:undefined, rotation:0,
+      id: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      name, realW: w, realH: h, color: state.selectedColor,
+      rx: undefined, ry: undefined, rotation: 0,
     });
   });
-  document.getElementById('furnitureName').value='';
-  document.getElementById('furnitureW').value='';
-  document.getElementById('furnitureH').value='';
+  document.getElementById('furnitureName').value = '';
+  document.getElementById('furnitureW').value    = '';
+  document.getElementById('furnitureH').value    = '';
   renderSidebar(); draw();
 });
 

@@ -24,7 +24,7 @@
     <span class="brand-tagline">Furniture Layout Planner</span>
   </div>
 
-  <!-- NAV LINKS -->
+  <!-- NAV LINKS (desktop) -->
   <nav class="header-nav">
     <button class="nav-link" id="btnHowToUse">How to Use</button>
     <button class="nav-link" id="btnAbout">About</button>
@@ -63,8 +63,65 @@
       </button>
       <input type="file" id="fileOpenInput" accept=".floorplan" style="display:none" />
     </div>
+    <!-- Mobile nav menu toggle (hidden on desktop) -->
+    <button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="Open menu" aria-expanded="false">
+      <svg id="mobileNavIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
   </div>
 </header>
+
+<!-- ===== MOBILE NAV DRAWER ===== -->
+<div class="mobile-nav-backdrop" id="mobileNavBackdrop"></div>
+<nav class="mobile-nav-drawer" id="mobileNavDrawer" aria-hidden="true">
+  <div class="mnd-header">
+    <span class="mnd-title">Menu</span>
+    <button class="mnd-close" id="mobileNavClose" aria-label="Close menu">&times;</button>
+  </div>
+  <div class="mnd-body">
+    <!-- Undo / Redo -->
+    <div class="mnd-section">
+      <div class="mnd-section-label">History</div>
+      <div class="mnd-row">
+        <button class="mnd-action-btn" id="mobileUndoBtn" disabled>
+          <svg viewBox="0 0 20 20" fill="none"><path d="M7 9l-4 4 4 4M3 13h8a4 4 0 004-4v0a4 4 0 00-4-4H8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Undo
+        </button>
+        <button class="mnd-action-btn" id="mobileRedoBtn" disabled>
+          <svg viewBox="0 0 20 20" fill="none"><path d="M13 9l4 4-4 4M17 13H9a4 4 0 01-4-4v0a4 4 0 014-4h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Redo
+        </button>
+      </div>
+    </div>
+    <!-- Units -->
+    <div class="mnd-section">
+      <div class="mnd-section-label">Measurement Units</div>
+      <div class="mnd-row">
+        <button class="mnd-unit-btn active" id="mobileImperialBtn">Imperial (in)</button>
+        <button class="mnd-unit-btn" id="mobileMetricBtn">Metric (m/cm)</button>
+      </div>
+    </div>
+    <!-- Nav links -->
+    <div class="mnd-section">
+      <div class="mnd-section-label">Info</div>
+      <button class="mnd-nav-link" id="mobileHowToUse">
+        <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 9v5M10 7v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        How to Use
+      </button>
+      <button class="mnd-nav-link" id="mobileAbout">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 4a1 1 0 110 2 1 1 0 010-2zm0 4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        About
+      </button>
+      <a class="mnd-nav-link" href="https://github.com/sshafieha1/kojaw-furniture-layout-planner" target="_blank" rel="noopener noreferrer" id="mobileGitHub">
+        <svg viewBox="0 0 20 20" fill="currentColor" style="width:18px;height:18px;flex-shrink:0">
+          <path fill-rule="evenodd" d="M10 0C4.477 0 0 4.477 0 10c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.483 0-.237-.009-.868-.013-1.703-2.782.604-3.369-1.34-3.369-1.34-.454-1.155-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836a9.59 9.59 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.741 0 .269.18.58.688.482C17.138 18.163 20 14.418 20 10c0-5.523-4.478-10-10-10z" clip-rule="evenodd"/>
+        </svg>
+        GitHub
+      </a>
+    </div>
+  </div>
+</nav>
 
 <!-- ===== HOW TO USE POPUP ===== -->
 <div class="about-popup" id="howToUsePopup" aria-hidden="true">
@@ -243,6 +300,9 @@
 
   <!-- CANVAS AREA -->
   <div class="canvas-container" id="canvasContainer">
+    <!-- Rotation warning toast (all users) -->
+    <div class="rotate-warning-toast" id="rotateWarningToast">⚠ Can't rotate — not enough space!</div>
+
     <div class="canvas-toolbar">
       <button class="icon-btn" id="btnZoomIn" title="Zoom in">
         <svg viewBox="0 0 20 20" fill="none"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 9h5M9 6.5v5M15 15l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
@@ -278,6 +338,15 @@
       <canvas id="mainCanvas"></canvas>
       <!-- Wall drawing live measurement overlay -->
       <div class="wall-measure-overlay" id="wallMeasureOverlay" aria-live="polite"></div>
+      <!-- Mobile/tablet: on-canvas rotation button for selected furniture -->
+      <button class="mobile-rotate-btn" id="mobileRotateBtn" title="Rotate 90°" aria-label="Rotate furniture 90 degrees">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 2v6h-6"/>
+          <path d="M3 12a9 9 0 0115-6.7L21 8"/>
+          <path d="M3 22v-6h6"/>
+          <path d="M21 12a9 9 0 01-15 6.7L3 16"/>
+        </svg>
+      </button>
     </div>
 
     <div class="canvas-status" id="canvasStatus">
@@ -302,6 +371,46 @@
       <button class="btn btn-ghost" id="modalCancel">Cancel</button>
       <button class="btn btn-accent" id="modalSave">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- ===== MOBILE ROOM PICKER MODAL ===== -->
+<div class="room-picker-overlay" id="roomPickerOverlay" aria-hidden="true">
+  <div class="room-picker-sheet" id="roomPickerSheet" role="dialog" aria-labelledby="roomPickerTitle">
+    <div class="rps-drag-handle"></div>
+    <div class="rps-header">
+      <div class="rps-title-row">
+        <svg class="rps-icon" viewBox="0 0 20 20" fill="none">
+          <path d="M3 7a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M10 10v4M8 12h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span class="rps-title" id="roomPickerTitle">Place in which room?</span>
+      </div>
+      <p class="rps-subtitle" id="roomPickerSubtitle">Tap a room to add the furniture there.</p>
+    </div>
+    <div class="rps-room-list" id="roomPickerList"></div>
+    <button class="rps-cancel-btn" id="roomPickerCancel">Cancel</button>
+  </div>
+  <!-- "Not enough space" error toast inside picker -->
+  <div class="rps-no-space-toast" id="rpsNoSpaceToast">✗ Not enough space!</div>
+</div>
+
+<!-- ===== FIRST-ROOM PAN TIP OVERLAY ===== -->
+<div class="pan-tip-overlay" id="panTipOverlay" aria-hidden="true">
+  <div class="pan-tip-card">
+    <div class="pan-tip-icon">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Two finger silhouette -->
+        <path d="M16 28V16a3 3 0 016 0v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M22 22V14a3 3 0 016 0v10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M28 24v-6a3 3 0 016 0v10c0 5.523-4.477 10-10 10H20c-3.866 0-7-3.134-7-7v-3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Arrow right -->
+        <path d="M6 24h10M13 20l4 4-4 4" stroke="#6c63ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h3 class="pan-tip-heading">Navigate the canvas</h3>
+    <p class="pan-tip-body">Drag with <strong>two fingers</strong> simultaneously to pan around the layout.</p>
+    <span class="pan-tip-dismiss">Tap anywhere to continue</span>
   </div>
 </div>
 
@@ -430,6 +539,323 @@
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') overlay.classList.remove('active');
     });
+  })();
+
+  // ===== MOBILE ROOM PICKER =====
+  (function () {
+    const overlay     = document.getElementById('roomPickerOverlay');
+    const cancelBtn   = document.getElementById('roomPickerCancel');
+    const roomList    = document.getElementById('roomPickerList');
+    const noSpaceToast = document.getElementById('rpsNoSpaceToast');
+    let pendingFurniture = null;
+    let noSpaceTimer = null;
+
+    function showNoSpaceToast() {
+      noSpaceToast.classList.remove('show');
+      if (noSpaceTimer) clearTimeout(noSpaceTimer);
+      void noSpaceToast.offsetWidth;
+      noSpaceToast.classList.add('show');
+      noSpaceTimer = setTimeout(function () {
+        noSpaceToast.classList.remove('show');
+        noSpaceTimer = null;
+      }, 2000);
+    }
+
+    function closePicker() {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+      pendingFurniture = null;
+    }
+
+    // Expose globally so app-ui.js can call it
+    window.openRoomPicker = function (furnitureData) {
+      pendingFurniture = furnitureData;
+
+      // Build the room list
+      roomList.innerHTML = '';
+      state.rooms.forEach(function (room) {
+        const btn = document.createElement('button');
+        btn.className = 'rps-room-btn';
+        btn.innerHTML =
+          '<div class="rps-room-swatch"></div>' +
+          '<div class="rps-room-info">' +
+            '<div class="rps-room-name">' + (room.name || 'Unnamed Room') + '</div>' +
+            '<div class="rps-room-dims">' +
+              (typeof formatDim === 'function' ? formatDim(room.realW) + ' × ' + formatDim(room.realH) : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="rps-room-arrow"><svg viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>';
+
+        btn.addEventListener('click', function () {
+          if (!pendingFurniture) return;
+          const pf = pendingFurniture;
+
+          // Build a temporary furniture object to run findFreeSpot
+          const tempF = {
+            id: 'f_tmp',
+            name: pf.name,
+            realW: pf.realW,
+            realH: pf.realH,
+            color: pf.color,
+            rotation: 0,
+            rx: 0, ry: 0,
+          };
+
+          const spot = (typeof findFreeSpot === 'function') ? findFreeSpot(tempF, room) : null;
+
+          if (!spot) {
+            showNoSpaceToast();
+            return;
+          }
+
+          // Place the furniture
+          if (typeof commitState === 'function') commitState();
+          const newF = {
+            id: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+            name: pf.name,
+            realW: spot.realW,
+            realH: spot.realH,
+            color: pf.color,
+            rotation: spot.rotation,
+            rx: spot.rx,
+            ry: spot.ry,
+          };
+          room.furniture.push(newF);
+          state.selected = { type: 'furniture', roomId: room.id, itemId: newF.id };
+
+          // Clear input fields
+          document.getElementById('furnitureName').value = '';
+          document.getElementById('furnitureW').value    = '';
+          document.getElementById('furnitureH').value    = '';
+
+          if (typeof renderSidebar === 'function') renderSidebar();
+          if (typeof draw === 'function') draw();
+          closePicker();
+        });
+
+        roomList.appendChild(btn);
+      });
+
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    };
+
+    cancelBtn.addEventListener('click', closePicker);
+
+    // Tap outside the sheet to dismiss
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) closePicker();
+    });
+  })();
+
+  // ===== FIRST-ROOM PAN TIP =====
+  (function () {
+    const overlay = document.getElementById('panTipOverlay');
+
+    window.showPanTip = function () {
+      overlay.classList.add('open');
+      overlay.setAttribute('aria-hidden', 'false');
+    };
+
+    function hidePanTip() {
+      overlay.classList.remove('open');
+      overlay.setAttribute('aria-hidden', 'true');
+    }
+
+    overlay.addEventListener('click', hidePanTip);
+    overlay.addEventListener('touchend', function (e) {
+      e.preventDefault();
+      hidePanTip();
+    }, { passive: false });
+  })();
+
+  // ===== MOBILE NAV DRAWER =====
+  (function () {
+    const toggle   = document.getElementById('mobileNavToggle');
+    const drawer   = document.getElementById('mobileNavDrawer');
+    const backdrop = document.getElementById('mobileNavBackdrop');
+    const closeBtn = document.getElementById('mobileNavClose');
+
+    function openDrawer() {
+      drawer.classList.add('open');
+      backdrop.classList.add('visible');
+      toggle.classList.add('active');
+      toggle.setAttribute('aria-expanded', 'true');
+      drawer.setAttribute('aria-hidden', 'false');
+    }
+    function closeDrawer() {
+      drawer.classList.remove('open');
+      backdrop.classList.remove('visible');
+      toggle.classList.remove('active');
+      toggle.setAttribute('aria-expanded', 'false');
+      drawer.setAttribute('aria-hidden', 'true');
+    }
+
+    toggle.addEventListener('click', function () {
+      drawer.classList.contains('open') ? closeDrawer() : openDrawer();
+    });
+    closeBtn.addEventListener('click', closeDrawer);
+    backdrop.addEventListener('click', closeDrawer);
+
+    // ---- Mobile Undo/Redo buttons (mirror the desktop buttons) ----
+    document.getElementById('mobileUndoBtn').addEventListener('click', function () {
+      if (typeof undo === 'function') undo();
+    });
+    document.getElementById('mobileRedoBtn').addEventListener('click', function () {
+      if (typeof redo === 'function') redo();
+    });
+
+    // Keep mobile undo/redo disabled state in sync with desktop
+    const origUpdateUndoRedo = window.updateUndoRedoUI;
+    window.updateUndoRedoUI = function () {
+      if (typeof origUpdateUndoRedo === 'function') origUpdateUndoRedo();
+      const mUndo = document.getElementById('mobileUndoBtn');
+      const mRedo = document.getElementById('mobileRedoBtn');
+      if (mUndo) mUndo.disabled = (typeof undoStack === 'undefined' || undoStack.length === 0);
+      if (mRedo) mRedo.disabled = (typeof redoStack === 'undefined' || redoStack.length === 0);
+    };
+
+    // ---- Mobile Unit buttons (mirror the desktop unit toggle) ----
+    const mImperial = document.getElementById('mobileImperialBtn');
+    const mMetric   = document.getElementById('mobileMetricBtn');
+
+    function syncMobileUnits(u) {
+      mImperial.classList.toggle('active', u === 'imperial');
+      mMetric.classList.toggle('active', u === 'metric');
+    }
+
+    mImperial.addEventListener('click', function () {
+      if (typeof setUnit === 'function') { setUnit('imperial'); syncMobileUnits('imperial'); }
+    });
+    mMetric.addEventListener('click', function () {
+      if (typeof setUnit === 'function') { setUnit('metric'); syncMobileUnits('metric'); }
+    });
+
+    // Also sync mobile buttons when desktop unit buttons are clicked
+    document.getElementById('imperialBtn').addEventListener('click', function () {
+      syncMobileUnits('imperial');
+    });
+    document.getElementById('metricBtn').addEventListener('click', function () {
+      syncMobileUnits('metric');
+    });
+
+    // ---- Mobile nav links: open About / How To Use from drawer ----
+    document.getElementById('mobileHowToUse').addEventListener('click', function () {
+      closeDrawer();
+      // Trigger desktop How To Use button
+      document.getElementById('btnHowToUse').click();
+    });
+    document.getElementById('mobileAbout').addEventListener('click', function () {
+      closeDrawer();
+      document.getElementById('btnAbout').click();
+    });
+  })();
+
+  // ===== ROTATION WARNING TOAST =====
+  window.showRotateWarning = (function () {
+    const toast = document.getElementById('rotateWarningToast');
+    let hideTimer = null;
+    return function () {
+      // Restart animation by removing/re-adding the class
+      toast.classList.remove('show');
+      if (hideTimer) clearTimeout(hideTimer);
+      void toast.offsetWidth; // force reflow
+      toast.classList.add('show');
+      hideTimer = setTimeout(function () {
+        toast.classList.remove('show');
+        hideTimer = null;
+      }, 3000);
+    };
+  })();
+
+  // ===== MOBILE ROTATE BUTTON (on-canvas, for mobile/tablet) =====
+  (function () {
+    const rotateBtn = document.getElementById('mobileRotateBtn');
+    const scrollWrapper = document.getElementById('canvasScrollWrapper');
+
+    function isMobileTablet() {
+      return window.innerWidth <= 900;
+    }
+
+    function updateRotateBtnVisibility() {
+      if (!isMobileTablet()) {
+        rotateBtn.style.display = 'none';
+        rotateBtn.style.pointerEvents = 'none';
+        return;
+      }
+      // Show only when a furniture item is selected and placed on canvas
+      if (
+        typeof state !== 'undefined' &&
+        state.selected &&
+        state.selected.type === 'furniture'
+      ) {
+        const room = state.rooms.find(r => r.id === state.selected.roomId);
+        const f = room && room.furniture.find(x => x.id === state.selected.itemId);
+        if (f && f.rx !== undefined) {
+          positionRotateBtn(f, room);
+          rotateBtn.style.display = 'flex';
+          rotateBtn.style.pointerEvents = 'auto';
+          return;
+        }
+      }
+      rotateBtn.style.display = 'none';
+      rotateBtn.style.pointerEvents = 'none';
+    }
+
+    function positionRotateBtn(f, room) {
+      // Position button at the top-left corner of the selected furniture item
+      // accounting for canvas scroll offset and zoom
+      const ppu_ = typeof ppu === 'function' ? ppu() : 4;
+      const fcx = room.canvasX + f.rx * ppu_;
+      const fcy = room.canvasY + f.ry * ppu_;
+
+      const canvas = document.getElementById('mainCanvas');
+      const canvasRect = canvas.getBoundingClientRect();
+      const wrapperRect = scrollWrapper.getBoundingClientRect();
+
+      // Convert canvas coords to wrapper-relative px
+      const scaleX = canvasRect.width  / canvas.width;
+      const scaleY = canvasRect.height / canvas.height;
+
+      const screenX = canvasRect.left - wrapperRect.left + fcx * scaleX;
+      const screenY = canvasRect.top  - wrapperRect.top  + fcy * scaleY;
+
+      // Offset so the button sits just outside the top-left corner
+      const btnSize = 40;
+      const offsetX = -4;
+      const offsetY = -btnSize - 4;
+
+      rotateBtn.style.left = Math.max(4, screenX + offsetX) + 'px';
+      rotateBtn.style.top  = Math.max(4, screenY + offsetY) + 'px';
+    }
+
+    // Patch draw() to update button after every canvas redraw
+    const origDraw = window.draw;
+    window.draw = function () {
+      if (typeof origDraw === 'function') origDraw();
+      updateRotateBtnVisibility();
+    };
+
+    rotateBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (typeof state === 'undefined' || !state.selected || state.selected.type !== 'furniture') return;
+      const room = state.rooms.find(r => r.id === state.selected.roomId);
+      if (!room) return;
+      const f = room.furniture.find(x => x.id === state.selected.itemId);
+      if (!f) return;
+      if (typeof commitState === 'function') commitState();
+      const oldRot = f.rotation || 0;
+      f.rotation = oldRot + Math.PI / 2;
+      if (typeof wouldCollide === 'function' && wouldCollide(f, room, f.rx, f.ry)) {
+        f.rotation = oldRot;
+        if (typeof showRotateWarning === 'function') showRotateWarning();
+      }
+      if (typeof draw === 'function') draw();
+    });
+
+    // Also update on scroll (position changes)
+    scrollWrapper.addEventListener('scroll', updateRotateBtnVisibility);
+    window.addEventListener('resize', updateRotateBtnVisibility);
   })();
 
 </script>
