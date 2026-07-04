@@ -421,8 +421,17 @@ canvas.addEventListener('mousemove', e => {
     const newRot=md.startRot+(angle-md.startAngle);
     const oldRot=f.rotation;
     f.rotation=newRot;
-    // Revert if rotation causes collision
-    if (wouldCollide(f,room,f.rx,f.ry)) f.rotation=oldRot;
+    // Revert if rotation causes collision; show warning (throttled)
+    if (wouldCollide(f,room,f.rx,f.ry)) {
+      f.rotation=oldRot;
+      if (!md._warnThrottle) {
+        if (typeof showRotateWarning === 'function') showRotateWarning();
+        md._warnThrottle = true;
+        setTimeout(()=>{if(md) md._warnThrottle=false;}, 1500);
+      }
+    } else {
+      md._warnThrottle = false;
+    }
     draw();
   }
   else if (md.type==='resize') {
@@ -519,7 +528,11 @@ canvas.addEventListener('drop', e=>{
     sourceRoom.furniture=sourceRoom.furniture.filter(x=>x.id!==id);
     targetRoom.furniture.push(f);
   }
-  if (!wouldCollide(f,targetRoom,newRx,newRy)){f.rx=newRx;f.ry=newRy;}
+  if (!wouldCollide(f,targetRoom,newRx,newRy)){
+    f.rx=newRx;
+    f.ry=newRy;
+    f.hidden=false; // Ensure it's unhidden if dragged successfully
+  }
   state.selected={type:'furniture',roomId:targetRoom.id,itemId:f.id};
   draw(); renderSidebar();
 });
@@ -542,7 +555,10 @@ document.addEventListener('keydown', e=>{
         if (typeof commitState === 'function') commitState();
         const oldRot=f.rotation||0;
         f.rotation=oldRot+Math.PI/2;
-        if (wouldCollide(f,room,f.rx,f.ry)) f.rotation=oldRot;
+        if (wouldCollide(f,room,f.rx,f.ry)) {
+          f.rotation=oldRot;
+          if (typeof showRotateWarning === 'function') showRotateWarning();
+        }
         draw();
       }
     }
